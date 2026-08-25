@@ -50,7 +50,7 @@ Everything is intentionally simple and readable — the goal is to trace exactly
    pip install -r requirements.txt
    ```
 
-2. **Get API keys**: Obtain test keys from your payment provider.
+2. **Get API keys**: Obtain test keys from Razorpay.
 
 3. **Get an LLM key**: either a [Groq](https://console.groq.com) key (free tier, fast) or a [Gemini](https://aistudio.google.com) key.
 
