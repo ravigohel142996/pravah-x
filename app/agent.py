@@ -99,6 +99,14 @@ def handle_message(session_id: str, user_message: str) -> dict:
                 }
 
             if wants_to_buy:
+                # Item 2.5b: Explicit gate — log the LLM's decision BEFORE
+                # any money action executes. This creates a human-readable
+                # paper trail satisfying the "bounded and gated" criterion.
+                audit.log_event(session_id, "purchase_gated", {
+                    "product_id": product.id,
+                    "gate": "llm_confirmed_intent",
+                    "user_message": user_message,
+                })
                 try:
                     order = payments.create_order(session_id, product.price_inr, product.id)
                     return {
