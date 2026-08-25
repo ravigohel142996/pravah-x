@@ -107,7 +107,7 @@ def test_out_of_stock_returns_friendly_reply(tmp_audit_log, monkeypatch):
     # Patch _parse_intent to return a known product that wants_to_buy=True
     monkeypatch.setattr(
         agent_mod, "_parse_intent",
-        lambda msg: {"product_id": "sku_001", "wants_to_buy": True, "reply": ""},
+        lambda msg, history=None: {"product_id": "sku_001", "wants_to_buy": True, "reply": ""},
     )
     # Set stock to 0
     original_stock = catalog_mod.CATALOG["sku_001"].stock
@@ -133,7 +133,7 @@ def test_out_of_stock_writes_audit_event(tmp_audit_log, monkeypatch):
 
     monkeypatch.setattr(
         agent_mod, "_parse_intent",
-        lambda msg: {"product_id": "sku_001", "wants_to_buy": True, "reply": ""},
+        lambda msg, history=None: {"product_id": "sku_001", "wants_to_buy": True, "reply": ""},
     )
     original_stock = catalog_mod.CATALOG["sku_001"].stock
     catalog_mod.CATALOG["sku_001"] = catalog_mod.CATALOG["sku_001"].model_copy(update={"stock": 0})
@@ -200,7 +200,7 @@ def test_llm_error_returns_graceful_reply(tmp_audit_log, monkeypatch):
 
     monkeypatch.setattr(
         agent_mod, "_parse_intent",
-        lambda msg: (_ for _ in ()).throw(RuntimeError("LLM API timeout")),
+        lambda msg, history=None: (_ for _ in ()).throw(RuntimeError("LLM API timeout")),
     )
 
     result = agent_mod.handle_message("sess_llm_err", "anything")
@@ -225,7 +225,7 @@ def test_purchase_gate_event_is_logged(tmp_audit_log, monkeypatch):
 
     monkeypatch.setattr(
         agent_mod, "_parse_intent",
-        lambda msg: {"product_id": "sku_001", "wants_to_buy": True, "reply": "Sure!"},
+        lambda msg, history=None: {"product_id": "sku_001", "wants_to_buy": True, "reply": "Sure!"},
     )
 
     result = agent_mod.handle_message("sess_gate", "buy a keyboard")
