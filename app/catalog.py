@@ -15,7 +15,7 @@ class Product(BaseModel):
     id: str
     name: str
     description: str
-    price_inr: int          # in paise-free rupees for readability; converted to paise for Razorpay
+    price_inr: int          # in rupees for readability; converted to paise for the payment gateway
     stock: int
     tags: list[str] = []
 

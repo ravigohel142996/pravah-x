@@ -57,7 +57,7 @@ def _call_gemini(user_message: str, catalog_text: str) -> dict:
 
 def _parse_intent(user_message: str) -> dict:
     catalog_text = "\n".join(
-        f"- id={p.id} | {p.name} | ₹{p.price_inr} | {p.description}"
+        f"- id={p.id} | {p.name} | \u20b9{p.price_inr} | {p.description}"
         for p in catalog.get_catalog()
     )
     provider = os.getenv("LLM_PROVIDER", "groq").lower()
@@ -88,7 +88,7 @@ def handle_message(session_id: str, user_message: str) -> dict:
                 try:
                     order = payments.create_order(session_id, product.price_inr, product.id)
                     return {
-                        "reply": reply or f"Great, creating your order for {product.name} (₹{product.price_inr}).",
+                        "reply": reply or f"Great, creating your order for {product.name} (\u20b9{product.price_inr}).",
                         "action": "checkout_started",
                         "order_id": order["id"],
                         "amount_inr": product.price_inr,
@@ -104,7 +104,7 @@ def handle_message(session_id: str, user_message: str) -> dict:
                     }
 
             return {
-                "reply": reply or f"{product.name} is ₹{product.price_inr}. Want me to start checkout?",
+                "reply": reply or f"{product.name} is \u20b9{product.price_inr}. Want me to start checkout?",
                 "action": "product_shown",
                 "product_id": product.id,
             }

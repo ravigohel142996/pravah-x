@@ -1,10 +1,10 @@
 """
-Razorpay TEST MODE payment handling.
+Payment gateway integration (Razorpay TEST MODE).
 
 Flow used here: Orders API (server creates an order) -> Checkout.js on
 the frontend collects payment against that order -> we verify the
-signature server-side. This is Razorpay's standard integration
-pattern, just wired for an agent instead of a manual "Buy" button.
+signature server-side. This is the standard integration pattern,
+just wired for an agent instead of a manual "Buy" button.
 
 IMPORTANT: RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET must be TEST keys
 (they start with rzp_test_). Never use live keys for a demo/hackathon.
@@ -78,7 +78,7 @@ def create_order(session_id: str, amount_inr: int, product_id: str) -> dict:
 
 def verify_payment_signature(order_id: str, payment_id: str, signature: str) -> bool:
     """
-    Verify the payment signature Razorpay's Checkout.js returns after
+    Verify the payment signature the checkout JS returns after
     a successful payment, to confirm it wasn't tampered with client-side.
     """
     key_secret = os.getenv("RAZORPAY_KEY_SECRET", "")
