@@ -3,3 +3,5 @@ audit_log.jsonl
 __pycache__/
 *.pyc
 .venv/
+implementation_plan.md
+v2implementation_plan.md
