@@ -71,7 +71,14 @@ def handle_message(session_id: str, user_message: str) -> dict:
     Main entry point: one turn of the conversation.
     Returns a dict the API layer can send straight back to the frontend.
     """
-    intent = _parse_intent(user_message)
+    try:
+        intent = _parse_intent(user_message)
+    except Exception as e:
+        audit.log_event(session_id, "llm_error", {"error": str(e)})
+        return {
+            "reply": "I'm having trouble understanding right now. Let's try again in a moment.",
+            "action": "error",
+        }
     product_id = intent.get("product_id")
     wants_to_buy = intent.get("wants_to_buy", False)
     reply = intent.get("reply", "")
@@ -83,6 +90,13 @@ def handle_message(session_id: str, user_message: str) -> dict:
                 "product_id": product.id,
                 "user_message": user_message,
             })
+
+            if getattr(product, 'stock', 0) <= 0:
+                audit.log_event(session_id, "out_of_stock", {"product_id": product.id, "stock": getattr(product, 'stock', 0)})
+                return {
+                    "reply": f"I'm sorry, but {product.name} is currently out of stock.",
+                    "action": "out_of_stock",
+                }
 
             if wants_to_buy:
                 try:
