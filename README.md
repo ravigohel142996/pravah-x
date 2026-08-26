@@ -83,6 +83,22 @@ To run the automated safety and verification test suite:
    ```
    This runs 6 safety tests covering the safety-critical paths (out-of-stock guard, duplicate order blocking, signature verification failure handling, LLM call failure recovery, and purchase gates).
 
+## Deploy on Render
+
+This repository includes a `render.yaml` blueprint for a Render Web Service.
+
+1. Push this repository to GitHub.
+2. In Render, create a new Blueprint and select this repository.
+3. Render will use:
+   - Build command: `pip install -r requirements.txt`
+   - Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. Set the required environment variables in Render:
+   - `RAZORPAY_KEY_ID`
+   - `RAZORPAY_KEY_SECRET`
+   - `LLM_PROVIDER` (`groq` or `gemini`)
+   - `GROQ_API_KEY` (required when `LLM_PROVIDER=groq`)
+   - `GEMINI_API_KEY` (required when `LLM_PROVIDER=gemini`)
+
 ## Demoing the failure-handling
 
 You can show the four robust graceful-failure paths live:
