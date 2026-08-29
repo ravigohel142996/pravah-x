@@ -20,6 +20,7 @@ append a short suggestion to the reply and log an upsell_suggested event.
 
 import os
 import json
+import re
 from collections import deque
 from dotenv import load_dotenv
 
@@ -104,6 +105,29 @@ Respond ONLY with JSON in this exact shape, no other text:
 """
 
 
+def _parse_llm_json(raw_text: str) -> dict:
+    """Parse JSON from a strict or lightly wrapped LLM response."""
+    text = (raw_text or "").strip()
+    if not text:
+        raise ValueError("Empty LLM response")
+
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, count=1, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text, count=1)
+
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, flags=re.DOTALL)
+        if not match:
+            raise
+        parsed = json.loads(match.group(0))
+
+    if not isinstance(parsed, dict):
+        raise ValueError("LLM response JSON must be an object")
+    return parsed
+
+
 # ---------------------------------------------------------------------------
 # LLM callers — both now accept and thread history (Item 3a)
 # ---------------------------------------------------------------------------
@@ -121,8 +145,9 @@ def _call_groq(user_message: str, catalog_text: str, history: list[dict]) -> dic
         model="llama-3.3-70b-versatile",
         messages=messages,
         temperature=0.2,
+        response_format={"type": "json_object"},
     )
-    return json.loads(completion.choices[0].message.content)
+    return _parse_llm_json(completion.choices[0].message.content)
 
 
 def _call_gemini(user_message: str, catalog_text: str, history: list[dict]) -> dict:
@@ -142,7 +167,7 @@ def _call_gemini(user_message: str, catalog_text: str, history: list[dict]) -> d
         user_message,
         generation_config={"response_mime_type": "application/json"},
     )
-    return json.loads(response.text)
+    return _parse_llm_json(response.text)
 
 
 def _parse_intent(user_message: str, history: list[dict] | None = None) -> dict:
