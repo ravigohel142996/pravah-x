@@ -117,12 +117,27 @@ def _call_groq(user_message: str, catalog_text: str, history: list[dict]) -> dic
         *history,
         {"role": "user", "content": user_message},
     ]
-    completion = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=messages,
-        temperature=0.2,
-    )
-    return json.loads(completion.choices[0].message.content)
+
+    custom_model = os.getenv("GROQ_MODEL")
+    candidate_models = [m for m in [custom_model, "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "qwen/qwen3.6-27b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"] if m]
+
+    last_error = None
+    for model_name in candidate_models:
+        try:
+            completion = client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                temperature=0.2,
+                response_format={"type": "json_object"},
+            )
+            return json.loads(completion.choices[0].message.content)
+        except Exception as e:
+            last_error = e
+            continue
+
+    if last_error:
+        raise last_error
+
 
 
 def _call_gemini(user_message: str, catalog_text: str, history: list[dict]) -> dict:
