@@ -275,7 +275,7 @@ DEMO_HTML = """
     function addMsg(text, cls) {
       const div = document.createElement('div');
       div.className = 'msg ' + cls;
-      div.innerHTML = text.replace(/\n/g, '<br>');
+      div.innerHTML = text.split('\\n').join('<br>');
       chatEl.appendChild(div);
       chatEl.scrollTop = chatEl.scrollHeight;
     }
