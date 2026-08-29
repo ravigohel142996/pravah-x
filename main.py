@@ -89,26 +89,184 @@ def demo_page():
 
 DEMO_HTML = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Agentic Checkout Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pravah-X — Agentic Checkout & Audit Dashboard</title>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
-    #chat { border: 1px solid #ddd; border-radius: 8px; padding: 16px; min-height: 300px; margin-bottom: 12px; }
-    .msg { margin: 8px 0; }
-    .user { text-align: right; color: #0b5fff; }
-    .bot { text-align: left; color: #222; }
-    input[type=text] { width: 78%; padding: 8px; }
-    button { padding: 8px 14px; }
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --border-color: #334155;
+      --accent-blue: #3b82f6;
+      --accent-hover: #2563eb;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand h1 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .badge {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      background: var(--accent-blue); color: #fff; padding: 3px 8px; border-radius: 999px;
+    }
+    .nav-links { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .nav-link {
+      font-size: 0.82rem; color: #cbd5e1; text-decoration: none; font-weight: 500;
+      padding: 6px 12px; border-radius: 6px; background: #334155; transition: all 0.2s;
+    }
+    .nav-link:hover { background: var(--accent-blue); color: #fff; }
+    
+    .layout {
+      max-width: 1200px; width: 100%; margin: 24px auto; padding: 0 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px; flex: 1;
+    }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    
+    .panel {
+      background: var(--card-bg); border: 1px solid var(--border-color);
+      border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 16px;
+    }
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border-color); padding-bottom: 12px;
+    }
+    .panel-title { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    
+    /* Chat UI */
+    #chat {
+      flex: 1; min-height: 380px; max-height: 480px; overflow-y: auto;
+      border: 1px solid var(--border-color); background: #0b1329; border-radius: 8px;
+      padding: 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .msg { max-width: 85%; padding: 10px 14px; border-radius: 10px; font-size: 0.9rem; line-height: 1.45; }
+    .user { align-self: flex-end; background: var(--accent-blue); color: #fff; border-bottom-right-radius: 2px; }
+    .bot { align-self: flex-start; background: #334155; color: #f1f5f9; border-bottom-left-radius: 2px; }
+    .chat-input-row { display: flex; gap: 8px; }
+    .chat-input-row input {
+      flex: 1; background: #0b1329; border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.9rem; outline: none;
+    }
+    .chat-input-row input:focus { border-color: var(--accent-blue); }
+    .chat-input-row button {
+      background: var(--accent-blue); color: #fff; border: none;
+      padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+    }
+    .chat-input-row button:hover { background: var(--accent-hover); }
+    
+    /* Tabs & Content */
+    .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; }
+    .tab-btn {
+      background: transparent; border: none; color: var(--text-muted);
+      padding: 8px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+    
+    /* Product Catalog Grid */
+    .catalog-grid { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; max-height: 420px; }
+    .product-card {
+      background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px;
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    }
+    .prod-info h4 { font-size: 0.9rem; font-weight: 600; color: #f1f5f9; margin-bottom: 2px; }
+    .prod-info p { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px; }
+    .prod-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .tag { font-size: 0.68rem; background: #1e293b; color: #94a3b8; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); }
+    .stock { font-size: 0.72rem; color: #4ade80; font-weight: 600; }
+    .price { font-size: 0.95rem; font-weight: 700; color: #60a5fa; white-space: nowrap; }
+    .buy-btn {
+      font-size: 0.75rem; background: #334155; color: #fff; border: 1px solid #475569;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s; white-space: nowrap; margin-top: 4px;
+    }
+    .buy-btn:hover { background: var(--accent-blue); border-color: var(--accent-blue); }
+    
+    /* Live Audit Trail List */
+    .audit-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 420px; }
+    .audit-item {
+      background: #0f172a; border-left: 3px solid var(--accent-blue); border-radius: 6px;
+      padding: 8px 12px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .audit-type { font-weight: 700; color: #60a5fa; text-transform: uppercase; font-size: 0.68rem; margin-bottom: 2px; }
+    .audit-summary { color: #e2e8f0; font-size: 0.82rem; }
+    .audit-time { color: #64748b; font-size: 0.7rem; font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body>
-  <h2>Agentic Checkout -- Demo</h2>
-  <div id="chat"></div>
-  <input type="text" id="input" placeholder="e.g. I want a mechanical keyboard" />
-  <button onclick="send()">Send</button>
+  <header>
+    <div class="brand">
+      <span>🛍️</span>
+      <h1>Pravah-X</h1>
+      <span class="badge">Agentic Checkout</span>
+    </div>
+    <div class="nav-links">
+      <a class="nav-link" href="/catalog" target="_blank">📦 Catalog (/catalog)</a>
+      <a class="nav-link" href="/audit-dashboard" target="_blank">📋 Audit Dashboard (/audit-dashboard)</a>
+      <a class="nav-link" href="/audit" target="_blank">⚡ Raw Logs (/audit)</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Left Panel: Chat Interface -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">💬 Conversational Agent</div>
+        <span id="session-badge" style="font-size:0.75rem; color:#64748b; font-family:monospace"></span>
+      </div>
+      <div id="chat">
+        <div class="msg bot">
+          Hello! I am your Agentic Checkout assistant powered by Razorpay.<br/><br/>
+          Ask me about products in our catalog (e.g. <i>"I want a mechanical keyboard"</i>) to start your checkout!
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="input" placeholder="e.g. I want to buy a mechanical keyboard" />
+        <button onclick="send()">Send</button>
+      </div>
+    </div>
+
+    <!-- Right Panel: Catalog & Live Audit Trail -->
+    <div class="panel">
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-catalog-btn" onclick="switchTab('catalog')">📦 Product Catalog</button>
+        <button class="tab-btn" id="tab-audit-btn" onclick="switchTab('audit')">📋 Live Audit Stream</button>
+      </div>
+
+      <!-- Tab 1: Product Catalog -->
+      <div id="tab-catalog" class="catalog-grid">
+        <div style="text-align:center; color:#64748b; padding:20px;">Loading catalog...</div>
+      </div>
+
+      <!-- Tab 2: Live Audit Stream -->
+      <div id="tab-audit" class="audit-list" style="display:none;">
+        <div style="text-align:center; color:#64748b; padding:20px;">No events in this session yet. Start chatting!</div>
+      </div>
+      <div id="audit-footer" style="display:none; text-align:right; margin-top:8px;">
+        <a href="/audit-dashboard" target="_blank" style="font-size:0.8rem; color:#60a5fa; text-decoration:none;">Open Full Timeline Dashboard →</a>
+      </div>
+    </div>
+  </main>
 
   <script>
     let sessionId = null;
@@ -117,30 +275,42 @@ DEMO_HTML = """
     function addMsg(text, cls) {
       const div = document.createElement('div');
       div.className = 'msg ' + cls;
-      div.textContent = text;
+      div.innerHTML = text.replace(/\n/g, '<br>');
       chatEl.appendChild(div);
       chatEl.scrollTop = chatEl.scrollHeight;
     }
 
-    async function send() {
+    async function send(promptText) {
       const input = document.getElementById('input');
-      const message = input.value.trim();
+      const message = promptText || input.value.trim();
       if (!message) return;
+      if (!promptText) input.value = '';
+      
       addMsg(message, 'user');
-      input.value = '';
 
-      const res = await fetch('/chat', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({session_id: sessionId, message})
-      });
-      const data = await res.json();
-      sessionId = data.session_id;
-      addMsg(data.reply, 'bot');
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({session_id: sessionId, message})
+        });
+        const data = await res.json();
+        sessionId = data.session_id;
+        document.getElementById('session-badge').textContent = 'Session: ' + sessionId.slice(0, 8) + '...';
+        addMsg(data.reply, 'bot');
 
-      if (data.action === 'checkout_started') {
-        openRazorpayCheckout(data);
+        fetchSessionAudit();
+
+        if (data.action === 'checkout_started') {
+          openRazorpayCheckout(data);
+        }
+      } catch (err) {
+        addMsg('Error connecting to backend.', 'bot');
       }
+    }
+
+    function quickBuy(productName) {
+      send('I want to buy ' + productName);
     }
 
     function openRazorpayCheckout(data) {
@@ -148,8 +318,8 @@ DEMO_HTML = """
         key: data.razorpay_key_id,
         amount: data.amount_inr * 100,
         currency: 'INR',
-        name: 'Agentic Checkout Demo',
-        description: 'Test mode purchase',
+        name: 'Pravah-X Agentic Checkout',
+        description: 'Order #' + data.order_id,
         order_id: data.order_id,
         handler: async function (response) {
           const confirmRes = await fetch('/payments/confirm', {
@@ -163,20 +333,87 @@ DEMO_HTML = """
             })
           });
           if (confirmRes.ok) {
-            addMsg('Payment confirmed! Thank you.', 'bot');
+            addMsg('✅ Payment confirmed! Signature verified successfully.', 'bot');
           } else {
-            addMsg('Payment could not be verified.', 'bot');
+            addMsg('❌ Payment verification failed.', 'bot');
           }
+          fetchSessionAudit();
         },
-        theme: { color: '#0b5fff' }
+        theme: { color: '#3b82f6' }
       };
       const rzp = new Razorpay(options);
       rzp.open();
     }
 
+    function switchTab(tab) {
+      document.getElementById('tab-catalog-btn').classList.toggle('active', tab === 'catalog');
+      document.getElementById('tab-audit-btn').classList.toggle('active', tab === 'audit');
+      document.getElementById('tab-catalog').style.display = tab === 'catalog' ? 'flex' : 'none';
+      document.getElementById('tab-audit').style.display = tab === 'audit' ? 'flex' : 'none';
+      document.getElementById('audit-footer').style.display = tab === 'audit' ? 'block' : 'none';
+      if (tab === 'audit') fetchSessionAudit();
+    }
+
+    async function loadCatalog() {
+      try {
+        const res = await fetch('/catalog');
+        const data = await res.json();
+        const catalogEl = document.getElementById('tab-catalog');
+        if (!data.products || data.products.length === 0) {
+          catalogEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:20px;">No products found</div>';
+          return;
+        }
+        catalogEl.innerHTML = data.products.map(p => `
+          <div class="product-card">
+            <div class="prod-info">
+              <h4>${p.name}</h4>
+              <p>${p.description}</p>
+              <div class="prod-meta">
+                <span class="stock">Stock: ${p.stock}</span>
+                <span class="tag">ID: ${p.id}</span>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div class="price">₹${p.price_inr}</div>
+              <button class="buy-btn" onclick="quickBuy('${p.name}')">Buy via Agent</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error('Failed to load catalog:', e);
+      }
+    }
+
+    async function fetchSessionAudit() {
+      if (!sessionId) return;
+      try {
+        const res = await fetch('/audit/' + sessionId);
+        const data = await res.json();
+        const trail = data.trail || [];
+        const auditEl = document.getElementById('tab-audit');
+        if (trail.length === 0) {
+          auditEl.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">No events logged for this session yet.</div>';
+          return;
+        }
+        auditEl.innerHTML = trail.map(ev => `
+          <div class="audit-item">
+            <div>
+              <div class="audit-type">${ev.event_type}</div>
+              <div class="audit-summary">${ev.summary || ev.event_type}</div>
+            </div>
+            <div class="audit-time">${new Date(ev.timestamp * 1000).toLocaleTimeString()}</div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error('Failed to fetch audit trail:', e);
+      }
+    }
+
     document.getElementById('input').addEventListener('keydown', e => {
       if (e.key === 'Enter') send();
     });
+
+    loadCatalog();
   </script>
 </body>
 </html>
